@@ -30,10 +30,16 @@ export class ClickOutsideDirective implements OnInit, OnChanges, OnDestroy {
 
   @Input() clickOutsideEvents: string = '';
 
+  /**
+   * Set it before OnInit. Immutable afterwards
+   */
+  @Input() capture = false;
+
   @Output() clickOutside: EventEmitter<Event> = new EventEmitter<Event>();
 
   private _nodesExcluded: Array<HTMLElement> = [];
   private _events: Array<string> = ['click'];
+  private _useCapture: boolean;
 
   constructor(
       private _el: ElementRef,
@@ -67,6 +73,8 @@ export class ClickOutsideDirective implements OnInit, OnChanges, OnDestroy {
   }
 
   private _init() {
+    this._useCapture = this.capture;
+
     if (this.clickOutsideEvents !== '') {
       this._events = this.clickOutsideEvents.split(',').map(e => e.trim());
     }
@@ -151,13 +159,13 @@ export class ClickOutsideDirective implements OnInit, OnChanges, OnDestroy {
 
   private _initClickOutsideListener() {
     this._ngZone.runOutsideAngular(() => {
-      this._events.forEach(e => document.addEventListener(e, this._onClickBody));
+      this._events.forEach(e => document.addEventListener(e, this._onClickBody, this._useCapture));
     });
   }
 
   private _removeClickOutsideListener() {
     this._ngZone.runOutsideAngular(() => {
-      this._events.forEach(e => document.removeEventListener(e, this._onClickBody));
+      this._events.forEach(e => document.removeEventListener(e, this._onClickBody, this._useCapture));
     });
   }
 
